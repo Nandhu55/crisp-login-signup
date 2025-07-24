@@ -1,28 +1,114 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AuthCard } from "@/components/ui/auth-card";
 import { BrandHeader } from "@/components/ui/brand-header";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
+    username: "",
     email: "",
     password: "",
+    confirmPassword: "",
     course: "",
-    phoneNumber: "",
     year: "",
-    semester: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { signUp, signInWithOAuth, user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Signup attempt:", formData);
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const userData = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        username: formData.username,
+        course: formData.course,
+        year_of_study: parseInt(formData.year) || null,
+      };
+
+      const { error } = await signUp(formData.email, formData.password, userData);
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Account created successfully! Welcome to B-Tech Hub.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await signInWithOAuth('google');
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign in with Google",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,15 +137,15 @@ const Signup = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName" className="text-foreground">Full Name</Label>
+            <Label htmlFor="firstName" className="text-foreground">First Name</Label>
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                id="fullName"
-                name="fullName"
+                id="firstName"
+                name="firstName"
                 type="text"
-                placeholder="John Doe"
-                value={formData.fullName}
+                placeholder="John"
+                value={formData.firstName}
                 onChange={handleInputChange}
                 className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
                 required
@@ -68,15 +154,15 @@ const Signup = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-foreground">Email</Label>
+            <Label htmlFor="lastName" className="text-foreground">Last Name</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="student@example.com"
-                value={formData.email}
+                id="lastName"
+                name="lastName"
+                type="text"
+                placeholder="Doe"
+                value={formData.lastName}
                 onChange={handleInputChange}
                 className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
                 required
@@ -86,26 +172,86 @@ const Signup = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-foreground">Password</Label>
+          <Label htmlFor="username" className="text-foreground">Username</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={formData.password}
+              id="username"
+              name="username"
+              type="text"
+              placeholder="johndoe123"
+              value={formData.username}
               onChange={handleInputChange}
-              className="pl-10 pr-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
+              className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
               required
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-foreground">Email</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="student@example.com"
+              value={formData.email}
+              onChange={handleInputChange}
+              className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-foreground">Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleInputChange}
+                className="pl-10 pr-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword" className="text-foreground">Confirm Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className="pl-10 pr-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -128,25 +274,6 @@ const Signup = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber" className="text-foreground">Phone Number</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="phoneNumber"
-                name="phoneNumber"
-                type="tel"
-                placeholder="123-456-7890"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
             <Label htmlFor="year" className="text-foreground">Year</Label>
             <Select onValueChange={(value) => handleSelectChange("year", value)}>
               <SelectTrigger className="bg-input border-border text-foreground">
@@ -160,32 +287,14 @@ const Signup = () => {
               </SelectContent>
             </Select>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="semester" className="text-foreground">Semester</Label>
-            <Select onValueChange={(value) => handleSelectChange("semester", value)}>
-              <SelectTrigger className="bg-input border-border text-foreground">
-                <SelectValue placeholder="Select semester" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                <SelectItem value="1">1st Semester</SelectItem>
-                <SelectItem value="2">2nd Semester</SelectItem>
-                <SelectItem value="3">3rd Semester</SelectItem>
-                <SelectItem value="4">4th Semester</SelectItem>
-                <SelectItem value="5">5th Semester</SelectItem>
-                <SelectItem value="6">6th Semester</SelectItem>
-                <SelectItem value="7">7th Semester</SelectItem>
-                <SelectItem value="8">8th Semester</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
         <Button 
           type="submit" 
+          disabled={isLoading}
           className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground font-medium py-3 transition-all duration-200"
         >
-          Send OTP
+          {isLoading ? "Creating Account..." : "Create Account"}
         </Button>
 
         <div className="relative">
@@ -200,6 +309,7 @@ const Signup = () => {
         <Button
           type="button"
           variant="outline"
+          onClick={handleGoogleSignIn}
           className="w-full border-border text-foreground hover:bg-secondary"
         >
           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
