@@ -49,6 +49,33 @@ export type Database = {
           },
         ]
       }
+      email_verification_codes: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          used: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          used?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          used?: boolean
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -170,7 +197,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_codes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      generate_otp_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

@@ -18,6 +18,7 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showOtpStep, setShowOtpStep] = useState(false);
   const [otpValue, setOtpValue] = useState("");
+  const [debugOtpCode, setDebugOtpCode] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -71,16 +72,20 @@ const Signup = () => {
         year_of_study: parseInt(formData.year) || null,
       };
 
-      const { error } = await signUp(formData.email, formData.password, userData);
+      const result = await signUp(formData.email, formData.password, userData);
       
-      if (error) {
-        console.log("Signup error:", error);
+      if (result.error) {
+        console.log("Signup error:", result.error);
         toast({
           title: "Error",
-          description: error.message,
+          description: result.error.message,
           variant: "destructive",
         });
       } else {
+        // For demo purposes, capture debug code if available
+        if (result.debugCode) {
+          setDebugOtpCode(result.debugCode);
+        }
         setShowOtpStep(true);
         toast({
           title: "Check your email",
@@ -222,6 +227,13 @@ const Signup = () => {
         <form onSubmit={handleOtpSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label className="text-foreground">Verification Code</Label>
+            {debugOtpCode && (
+              <div className="p-3 bg-yellow-100 border border-yellow-400 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <strong>Demo Mode:</strong> Your OTP code is: <code className="font-mono bg-yellow-200 px-1 rounded">{debugOtpCode}</code>
+                </p>
+              </div>
+            )}
             <div className="flex justify-center">
               <InputOTP 
                 maxLength={6} 
