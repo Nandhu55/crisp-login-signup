@@ -79,11 +79,11 @@ const Signup = () => {
           variant: "destructive",
         });
       } else {
-        setShowOtpStep(true);
         toast({
-          title: "Check your email",
-          description: "We've sent you a verification code. Please enter it below.",
+          title: "Success",
+          description: "Account created successfully! Welcome to B-Tech Hub.",
         });
+        navigate('/dashboard');
       }
     } catch (error) {
       toast({
