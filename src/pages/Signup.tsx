@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { AuthCard } from "@/components/ui/auth-card";
 import { BrandHeader } from "@/components/ui/brand-header";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +15,8 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showOtpStep, setShowOtpStep] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -25,7 +28,7 @@ const Signup = () => {
     year: "",
   });
 
-  const { signUp, signInWithOAuth, user } = useAuth();
+  const { signUp, verifyOtp, resendOtp, signInWithOAuth, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -76,9 +79,10 @@ const Signup = () => {
           variant: "destructive",
         });
       } else {
+        setShowOtpStep(true);
         toast({
-          title: "Success",
-          description: "Account created successfully! Welcome to B-Tech Hub.",
+          title: "Check your email",
+          description: "We've sent you a verification code. Please enter it below.",
         });
       }
     } catch (error) {
@@ -124,6 +128,145 @@ const Signup = () => {
       [name]: value
     }));
   };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (otpValue.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter the complete 6-digit code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await verifyOtp(formData.email, otpValue, 'signup');
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Account verified successfully! Welcome to B-Tech Hub.",
+        });
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await resendOtp(formData.email, 'signup');
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Code sent",
+          description: "A new verification code has been sent to your email.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to resend code",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (showOtpStep) {
+    return (
+      <AuthCard>
+        <BrandHeader />
+        
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-semibold text-foreground">Verify Your Email</h2>
+          <p className="text-muted-foreground">
+            We've sent a 6-digit code to {formData.email}
+          </p>
+        </div>
+
+        <form onSubmit={handleOtpSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label className="text-foreground">Verification Code</Label>
+            <div className="flex justify-center">
+              <InputOTP 
+                maxLength={6} 
+                value={otpValue} 
+                onChange={setOtpValue}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+          </div>
+
+          <Button 
+            type="submit" 
+            disabled={isLoading || otpValue.length !== 6}
+            className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground font-medium py-3 transition-all duration-200"
+          >
+            {isLoading ? "Verifying..." : "Verify Email"}
+          </Button>
+
+          <div className="text-center space-y-2">
+            <p className="text-muted-foreground text-sm">
+              Didn't receive the code?
+            </p>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleResendOtp}
+              disabled={isLoading}
+              className="text-primary hover:text-primary/80"
+            >
+              Resend Code
+            </Button>
+          </div>
+
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setShowOtpStep(false)}
+            className="w-full text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Sign Up
+          </Button>
+        </form>
+      </AuthCard>
+    );
+  }
 
   return (
     <AuthCard>
