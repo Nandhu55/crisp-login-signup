@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -34,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -51,34 +54,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, userData: any) => {
+    console.log('Signing up with email:', email);
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: userData
+        data: userData,
+        emailRedirectTo: `${window.location.origin}/`
       }
     });
+    console.log('Signup result:', { error });
     return { error };
   };
 
   const verifyOtp = async (email: string, token: string, type: 'signup' | 'recovery') => {
+    console.log('Verifying OTP:', { email, token, type });
     const { error } = await supabase.auth.verifyOtp({
       email,
       token,
       type
     });
+    console.log('OTP verification result:', { error });
     return { error };
   };
 
   const resendOtp = async (email: string, type: 'signup' | 'recovery') => {
+    console.log('Resending OTP:', { email, type });
     if (type === 'signup') {
       const { error } = await supabase.auth.resend({
         type: 'signup',
-        email
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
       });
+      console.log('Resend OTP result:', { error });
       return { error };
     } else {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
+      console.log('Reset password result:', { error });
       return { error };
     }
   };

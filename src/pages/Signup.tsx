@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
@@ -73,19 +74,21 @@ const Signup = () => {
       const { error } = await signUp(formData.email, formData.password, userData);
       
       if (error) {
+        console.log("Signup error:", error);
         toast({
           title: "Error",
           description: error.message,
           variant: "destructive",
         });
       } else {
+        setShowOtpStep(true);
         toast({
-          title: "Success",
-          description: "Account created successfully! Welcome to B-Tech Hub.",
+          title: "Check your email",
+          description: "We've sent you a verification code. Please enter it below.",
         });
-        navigate('/dashboard');
       }
     } catch (error) {
+      console.log("Signup catch error:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -144,9 +147,11 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
+      console.log("Verifying OTP for email:", formData.email, "with code:", otpValue);
       const { error } = await verifyOtp(formData.email, otpValue, 'signup');
       
       if (error) {
+        console.log("OTP verification error:", error);
         toast({
           title: "Error",
           description: error.message,
@@ -160,6 +165,7 @@ const Signup = () => {
         navigate('/dashboard');
       }
     } catch (error) {
+      console.log("OTP verification catch error:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -173,9 +179,11 @@ const Signup = () => {
   const handleResendOtp = async () => {
     setIsLoading(true);
     try {
+      console.log("Resending OTP for email:", formData.email);
       const { error } = await resendOtp(formData.email, 'signup');
       
       if (error) {
+        console.log("Resend OTP error:", error);
         toast({
           title: "Error",
           description: error.message,
@@ -188,6 +196,7 @@ const Signup = () => {
         });
       }
     } catch (error) {
+      console.log("Resend OTP catch error:", error);
       toast({
         title: "Error",
         description: "Failed to resend code",
