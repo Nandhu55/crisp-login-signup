@@ -58,24 +58,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Store user data temporarily and send OTP
     try {
-      // Call our custom OTP function
-      const response = await fetch('/supabase/functions/v1/send-otp-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hcHV2aGRld2t6bmFycG5jZnBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNTA0ODksImV4cCI6MjA2ODkyNjQ4OX0.DE0aULuXdPLoqQpF6R7UKRYS4FEjDdOaf4iXbFl65qs`,
-        },
-        body: JSON.stringify({
+      // Call our custom OTP function using supabase client
+      const { data, error } = await supabase.functions.invoke('send-otp-email', {
+        body: {
           email,
           type: 'signup'
-        })
+        }
       });
 
-      const result = await response.json();
-      
-      if (!response.ok) {
-        console.log('OTP send error:', result.error);
-        return { error: { message: result.error } };
+      if (error) {
+        console.log('OTP send error:', error);
+        return { error: { message: error.message } };
       }
       
       // Store signup data temporarily in session storage for later completion
@@ -85,8 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userData
       }));
       
-      console.log('OTP sent successfully:', result);
-      return { error: null, debugCode: result.debug_code };
+      console.log('OTP sent successfully:', data);
+      return { error: null, debugCode: data?.debug_code };
       
     } catch (error) {
       console.log('Signup error:', error);
@@ -181,27 +174,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (type === 'signup') {
       try {
-        // Call our custom OTP function
-        const response = await fetch('/supabase/functions/v1/send-otp-email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hcHV2aGRld2t6bmFycG5jZnBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNTA0ODksImV4cCI6MjA2ODkyNjQ4OX0.DE0aULuXdPLoqQpF6R7UKRYS4FEjDdOaf4iXbFl65qs`,
-          },
-          body: JSON.stringify({
+        // Call our custom OTP function using supabase client
+        const { data, error } = await supabase.functions.invoke('send-otp-email', {
+          body: {
             email,
             type: 'signup'
-          })
+          }
         });
 
-        const result = await response.json();
-        
-        if (!response.ok) {
-          console.log('Resend OTP error:', result.error);
-          return { error: { message: result.error } };
+        if (error) {
+          console.log('Resend OTP error:', error);
+          return { error: { message: error.message } };
         }
         
-        console.log('Resend OTP result:', result);
+        console.log('Resend OTP result:', data);
         return { error: null };
         
       } catch (error) {
