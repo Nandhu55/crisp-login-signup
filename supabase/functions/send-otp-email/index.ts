@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { Resend } from "npm:resend@2.0.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,11 +76,42 @@ serve(async (req) => {
       )
     }
 
-    // Send email using a simple approach (you might want to use a proper email service)
-    console.log(`📧 OTP Code for ${email}: ${otpCode}`)
+    // Send email with OTP code
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
     
-    // For demo purposes, we'll just log the code
-    // In production, you would integrate with an email service like SendGrid, Resend, etc.
+    if (resendApiKey) {
+      try {
+        const resend = new Resend(resendApiKey);
+        
+        await resend.emails.send({
+          from: 'B-Tech Hub <onboarding@resend.dev>',
+          to: [email],
+          subject: 'Your B-Tech Hub Verification Code',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #333; text-align: center;">B-Tech Hub</h1>
+              <h2 style="color: #333; text-align: center;">Email Verification</h2>
+              <p style="color: #666; font-size: 16px;">Your verification code is:</p>
+              <div style="background: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+                <h1 style="color: #333; font-size: 32px; letter-spacing: 8px; margin: 0;">${otpCode}</h1>
+              </div>
+              <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
+              <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
+            </div>
+          `,
+        });
+        
+        console.log(`📧 OTP email sent to ${email}`);
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
+        // Continue anyway - still return the debug code for demo
+      }
+    } else {
+      console.log('📧 Resend API key not configured - email not sent');
+    }
+    
+    // For demo purposes, we'll log the code
+    console.log(`📧 OTP Code for ${email}: ${otpCode}`);
     
     return new Response(
       JSON.stringify({ 
