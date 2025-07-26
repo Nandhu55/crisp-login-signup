@@ -110,14 +110,9 @@ serve(async (req) => {
       console.log('📧 Resend API key not configured - email not sent');
     }
     
-    // For demo purposes, we'll log the code
-    console.log(`📧 OTP Code for ${email}: ${otpCode}`);
-    
     return new Response(
       JSON.stringify({ 
-        message: 'OTP sent successfully',
-        // Remove this in production! Only for demo
-        debug_code: otpCode 
+        message: 'OTP sent successfully'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
