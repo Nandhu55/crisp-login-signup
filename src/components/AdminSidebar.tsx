@@ -10,6 +10,7 @@ import {
   LogOut
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -23,14 +24,14 @@ import {
 } from "@/components/ui/sidebar";
 
 const menuItems = [
-  { title: "Home", icon: Home, url: "#" },
-  { title: "Profile", icon: User, url: "#" },
-  { title: "Dashboard", icon: LayoutDashboard, url: "#", active: true },
-  { title: "Manage Academic Books", icon: BookOpen, url: "#" },
-  { title: "Manage Other Books", icon: Book, url: "#" },
-  { title: "Manage Exam Papers", icon: FileText, url: "#" },
-  { title: "Manage Users", icon: Users, url: "#" },
-  { title: "Manage Categories", icon: FolderOpen, url: "#" },
+  { title: "Home", icon: Home, url: "/" },
+  { title: "Profile", icon: User, url: "/dashboard" },
+  { title: "Dashboard", icon: LayoutDashboard, url: "/admin", active: true },
+  { title: "Manage Academic Books", icon: BookOpen, url: "/admin" },
+  { title: "Manage Other Books", icon: Book, url: "/admin" },
+  { title: "Manage Exam Papers", icon: FileText, url: "/admin" },
+  { title: "Manage Users", icon: Users, url: "/admin" },
+  { title: "Manage Categories", icon: FolderOpen, url: "/admin" },
 ];
 
 export function AdminSidebar() {
@@ -63,10 +64,10 @@ export function AdminSidebar() {
                       item.active ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600" : ""
                     }`}
                   >
-                    <a href={item.url} className="flex items-center space-x-3 px-3 py-2">
+                    <Link to={item.url} className="flex items-center space-x-3 px-3 py-2">
                       <item.icon className="w-4 h-4" />
                       <span className="text-sm">{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
