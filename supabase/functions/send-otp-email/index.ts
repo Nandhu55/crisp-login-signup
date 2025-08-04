@@ -78,42 +78,76 @@ serve(async (req) => {
 
     // Send email with OTP code
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    console.log('🔑 Resend API Key present:', !!resendApiKey);
+    
+    let emailSent = false;
+    let emailError = null;
     
     if (resendApiKey) {
       try {
+        console.log('📧 Initializing Resend with API key...');
         const resend = new Resend(resendApiKey);
         
-        await resend.emails.send({
+        console.log('📧 Sending OTP email to:', email);
+        const emailResult = await resend.emails.send({
           from: 'B-Tech Hub <onboarding@resend.dev>',
           to: [email],
           subject: 'Your B-Tech Hub Verification Code',
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <h1 style="color: #333; text-align: center;">B-Tech Hub</h1>
-              <h2 style="color: #333; text-align: center;">Email Verification</h2>
-              <p style="color: #666; font-size: 16px;">Your verification code is:</p>
-              <div style="background: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
-                <h1 style="color: #333; font-size: 32px; letter-spacing: 8px; margin: 0;">${otpCode}</h1>
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>B-Tech Hub - Verification Code</title>
+            </head>
+            <body style="margin: 0; padding: 0; background-color: #f4f4f4;">
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+                <div style="text-align: center; padding: 40px 0;">
+                  <h1 style="color: #2563eb; margin: 0; font-size: 28px;">B-Tech Hub</h1>
+                  <h2 style="color: #1f2937; margin: 20px 0; font-size: 24px;">Email Verification</h2>
+                </div>
+                
+                <div style="padding: 20px; background-color: #f8fafc; border-radius: 8px; margin: 20px 0;">
+                  <p style="color: #4b5563; font-size: 16px; margin: 0 0 20px 0; text-align: center;">
+                    Use this verification code to complete your signup:
+                  </p>
+                  <div style="background: #ffffff; padding: 30px; text-align: center; border-radius: 8px; border: 2px solid #e5e7eb;">
+                    <span style="color: #1f2937; font-size: 36px; font-weight: bold; letter-spacing: 8px;">${otpCode}</span>
+                  </div>
+                </div>
+                
+                <div style="padding: 20px 0; border-top: 1px solid #e5e7eb; margin-top: 30px;">
+                  <p style="color: #6b7280; font-size: 14px; margin: 5px 0;">⏰ This code will expire in 10 minutes</p>
+                  <p style="color: #6b7280; font-size: 14px; margin: 5px 0;">🔒 If you didn't request this code, please ignore this email</p>
+                </div>
+                
+                <div style="text-align: center; padding: 20px 0; color: #9ca3af; font-size: 12px;">
+                  <p>B-Tech Hub - Your Academic Resource Platform</p>
+                </div>
               </div>
-              <p style="color: #666; font-size: 14px;">This code will expire in 10 minutes.</p>
-              <p style="color: #666; font-size: 14px;">If you didn't request this code, please ignore this email.</p>
-            </div>
+            </body>
+            </html>
           `,
         });
         
-        console.log(`📧 OTP email sent to ${email}`);
-      } catch (emailError) {
-        console.error('Failed to send email:', emailError);
-        // Continue anyway - still return the debug code for demo
+        console.log('📧 Email send result:', emailResult);
+        emailSent = true;
+        console.log(`✅ OTP email sent successfully to ${email}`);
+      } catch (error) {
+        console.error('❌ Failed to send email:', error);
+        emailError = error.message || 'Unknown email error';
       }
     } else {
-      console.log('📧 Resend API key not configured - email not sent');
+      console.log('⚠️ Resend API key not configured - email not sent');
     }
     
     return new Response(
       JSON.stringify({ 
         message: 'OTP sent successfully',
-        debug_code: resendApiKey ? undefined : otpCode  // Return code for testing when email is disabled
+        email_sent: emailSent,
+        email_error: emailError,
+        debug_code: !emailSent ? otpCode : undefined  // Return code for testing when email failed
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
