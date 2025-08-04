@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      books: {
+        Row: {
+          author: string
+          category_id: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          pdf_url: string | null
+          rating: number | null
+          title: string
+          user_id: string | null
+          year: string | null
+        }
+        Insert: {
+          author: string
+          category_id?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          pdf_url?: string | null
+          rating?: number | null
+          title: string
+          user_id?: string | null
+          year?: string | null
+        }
+        Update: {
+          author?: string
+          category_id?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          pdf_url?: string | null
+          rating?: number | null
+          title?: string
+          user_id?: string | null
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "books_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      categories: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -105,6 +170,30 @@ export type Database = {
           },
         ]
       }
+      otp_verification: {
+        Row: {
+          created_at: string | null
+          id: number
+          otp: string
+          user_id: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          otp: string
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          otp?: string
+          user_id?: string | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           category: string | null
@@ -189,6 +278,95 @@ export type Database = {
           user_id?: string
           username?: string | null
           year_of_study?: number | null
+        }
+        Relationships: []
+      }
+      question_papers: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          download_url: string | null
+          id: string
+          semester: string | null
+          subject: string
+          type: string | null
+          university: string | null
+          year: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          download_url?: string | null
+          id?: string
+          semester?: string | null
+          subject: string
+          type?: string | null
+          university?: string | null
+          year: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          download_url?: string | null
+          id?: string
+          semester?: string | null
+          subject?: string
+          type?: string | null
+          university?: string | null
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_papers_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          avatar_url: string | null
+          course: string | null
+          email: string
+          first_name: string
+          full_name: string
+          id: string
+          is_admin: boolean | null
+          last_name: string
+          password: string
+          signed_up_at: string | null
+          username: string
+          year: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          course?: string | null
+          email: string
+          first_name: string
+          full_name: string
+          id?: string
+          is_admin?: boolean | null
+          last_name: string
+          password: string
+          signed_up_at?: string | null
+          username: string
+          year?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          course?: string | null
+          email?: string
+          first_name?: string
+          full_name?: string
+          id?: string
+          is_admin?: boolean | null
+          last_name?: string
+          password?: string
+          signed_up_at?: string | null
+          username?: string
+          year?: string | null
         }
         Relationships: []
       }
