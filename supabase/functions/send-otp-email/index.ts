@@ -112,7 +112,8 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
-        message: 'OTP sent successfully'
+        message: 'OTP sent successfully',
+        debug_code: resendApiKey ? undefined : otpCode  // Return code for testing when email is disabled
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
