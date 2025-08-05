@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { AuthCard } from "@/components/ui/auth-card";
 import { BrandHeader } from "@/components/ui/brand-header";
+import { OtpVerification } from "@/components/ui/otp-verification";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,7 +17,6 @@ const Signup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showOtpStep, setShowOtpStep] = useState(false);
-  const [otpValue, setOtpValue] = useState("");
   const [debugOtpCode, setDebugOtpCode] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
@@ -137,78 +136,42 @@ const Signup = () => {
     }));
   };
 
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (otpValue.length !== 6) {
-      toast({
-        title: "Error",
-        description: "Please enter the complete 6-digit code",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
+  const handleOtpVerify = async (code: string) => {
     try {
-      console.log("Verifying OTP for email:", formData.email, "with code:", otpValue);
-      const { error } = await verifyOtp(formData.email, otpValue, 'signup');
+      console.log("Verifying OTP for email:", formData.email, "with code:", code);
+      const { error } = await verifyOtp(formData.email, code, 'signup');
       
       if (error) {
         console.log("OTP verification error:", error);
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
+        return { error };
       } else {
         toast({
           title: "Success",
           description: "Account verified successfully! Welcome to B-Tech Hub.",
         });
         navigate('/dashboard');
+        return {};
       }
     } catch (error) {
       console.log("OTP verification catch error:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      return { error: { message: "An unexpected error occurred" } };
     }
   };
 
   const handleResendOtp = async () => {
-    setIsLoading(true);
     try {
       console.log("Resending OTP for email:", formData.email);
       const { error } = await resendOtp(formData.email, 'signup');
       
       if (error) {
         console.log("Resend OTP error:", error);
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
+        return { error };
       } else {
-        toast({
-          title: "Code sent",
-          description: "A new verification code has been sent to your email.",
-        });
+        return {};
       }
     } catch (error) {
       console.log("Resend OTP catch error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to resend code",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      return { error: { message: "Failed to resend code" } };
     }
   };
 
@@ -216,75 +179,14 @@ const Signup = () => {
     return (
       <AuthCard>
         <BrandHeader />
-        
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold text-foreground">Verify Your Email</h2>
-          <p className="text-muted-foreground">
-            We've sent a 6-digit code to {formData.email}
-          </p>
-        </div>
-
-        <form onSubmit={handleOtpSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label className="text-foreground">Verification Code</Label>
-            {debugOtpCode && (
-              <div className="p-3 bg-yellow-100 border border-yellow-400 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  <strong>Demo Mode:</strong> Your OTP code is: <code className="font-mono bg-yellow-200 px-1 rounded">{debugOtpCode}</code>
-                </p>
-              </div>
-            )}
-            <div className="flex justify-center">
-              <InputOTP 
-                maxLength={6} 
-                value={otpValue} 
-                onChange={setOtpValue}
-              >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                </InputOTPGroup>
-              </InputOTP>
-            </div>
-          </div>
-
-          <Button 
-            type="submit" 
-            disabled={isLoading || otpValue.length !== 6}
-            className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground font-medium py-3 transition-all duration-200"
-          >
-            {isLoading ? "Verifying..." : "Verify Email"}
-          </Button>
-
-          <div className="text-center space-y-2">
-            <p className="text-muted-foreground text-sm">
-              Didn't receive the code?
-            </p>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleResendOtp}
-              disabled={isLoading}
-              className="text-primary hover:text-primary/80"
-            >
-              Resend Code
-            </Button>
-          </div>
-
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setShowOtpStep(false)}
-            className="w-full text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Sign Up
-          </Button>
-        </form>
+        <OtpVerification
+          email={formData.email}
+          onVerify={handleOtpVerify}
+          onResend={handleResendOtp}
+          onBack={() => setShowOtpStep(false)}
+          isLoading={isLoading}
+          debugCode={debugOtpCode}
+        />
       </AuthCard>
     );
   }
