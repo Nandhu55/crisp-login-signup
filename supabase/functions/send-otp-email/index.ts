@@ -90,7 +90,7 @@ serve(async (req) => {
         
         console.log('📧 Sending OTP email to:', email);
         const emailResult = await resend.emails.send({
-          from: 'B-Tech Hub <noreply@transactional.example.com>',
+          from: 'B-Tech Hub <noreply@resend.dev>',
           to: [email],
           subject: 'Your B-Tech Hub Verification Code',
           html: `
