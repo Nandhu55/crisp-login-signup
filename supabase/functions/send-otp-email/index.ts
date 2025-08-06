@@ -90,7 +90,7 @@ serve(async (req) => {
         
         console.log('📧 Sending OTP email to:', email);
         const emailResult = await resend.emails.send({
-          from: 'B-Tech Hub <onboarding@resend.dev>',
+          from: 'B-Tech Hub <noreply@yourdomain.com>', // Replace yourdomain.com with your verified domain
           to: [email],
           subject: 'Your B-Tech Hub Verification Code',
           html: `
@@ -155,8 +155,7 @@ serve(async (req) => {
       JSON.stringify({ 
         message: 'OTP sent successfully',
         email_sent: emailSent,
-        email_error: emailError,
-        debug_code: !emailSent ? otpCode : undefined  // Return code for testing when email failed
+        email_error: emailError
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
