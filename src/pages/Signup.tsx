@@ -185,7 +185,7 @@ const Signup = () => {
           onResend={handleResendOtp}
           onBack={() => setShowOtpStep(false)}
           isLoading={isLoading}
-          debugCode={debugOtpCode}
+          
         />
       </AuthCard>
     );

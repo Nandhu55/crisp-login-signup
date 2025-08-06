@@ -10,7 +10,7 @@ interface OtpVerificationProps {
   onResend: () => Promise<{ error?: { message: string } }>;
   onBack: () => void;
   isLoading?: boolean;
-  debugCode?: string;
+  
   title?: string;
   description?: string;
 }
@@ -21,7 +21,7 @@ export function OtpVerification({
   onResend,
   onBack,
   isLoading = false,
-  debugCode,
+  
   title = "Verify Your Email",
   description = "We've sent a 6-digit code to your email"
 }: OtpVerificationProps) {
@@ -144,16 +144,6 @@ export function OtpVerification({
       </div>
 
       <div className="space-y-4">
-        {debugCode && (
-          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
-              <strong>Demo Mode:</strong> Your OTP code is: 
-              <code className="ml-2 font-mono bg-amber-100 dark:bg-amber-800 px-2 py-1 rounded text-amber-900 dark:text-amber-100">
-                {debugCode}
-              </code>
-            </p>
-          </div>
-        )}
 
         <div className="flex justify-center">
           <InputOTP 
