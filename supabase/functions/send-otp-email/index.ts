@@ -132,11 +132,20 @@ serve(async (req) => {
         });
         
         console.log('📧 Email send result:', emailResult);
-        emailSent = true;
-        console.log(`✅ OTP email sent successfully to ${email}`);
+        
+        // Check if email actually succeeded
+        if (emailResult.error) {
+          console.error('❌ Resend API returned error:', emailResult.error);
+          emailError = emailResult.error.message || JSON.stringify(emailResult.error);
+          emailSent = false;
+        } else {
+          emailSent = true;
+          console.log(`✅ OTP email sent successfully to ${email}`);
+        }
       } catch (error) {
         console.error('❌ Failed to send email:', error);
         emailError = error.message || 'Unknown email error';
+        emailSent = false;
       }
     } else {
       console.log('⚠️ Resend API key not configured - email not sent');
